@@ -4,8 +4,10 @@ from skimage.exposure import rescale_intensity
 
 height, width = 256, 256
 folders_amount = 10
-cover_path = 'BOSSbase_1.01-256/cover/'
-stego_path = 'BOSSbase_1.01-256/stego_wow_0.4/'
+input_cover_path = 'BOSSbase_1.01-256/cover/'
+input_stego_path = 'BOSSbase_1.01-256/stego_wow_0.4/'
+output_cover_path = 'BOSSbase_1.01-256-convolved/cover/'
+output_stego_path = 'BOSSbase_1.01-256-convolved/stego_wow_0.4/'
 
 def convolve(image, kernel):
     i_width, i_height = image.shape[0], image.shape[1]
@@ -38,12 +40,12 @@ kernel = np.divide(kernel, 12)
 
 for folder_number in range(0, folders_amount):
     for file_number in range(folder_number * 1000 + 1, (folder_number + 1) * 1000 + 1):
-        cover_image = cv2.imread(cover_path + str(folder_number) + '/' + str(file_number) + '.pgm', cv2.IMREAD_GRAYSCALE)
+        cover_image = cv2.imread(input_cover_path + str(folder_number) + '/' + str(file_number) + '.pgm', cv2.IMREAD_GRAYSCALE)
         cover_conv_image = convolve(cover_image, kernel)
-        cv2.imwrite('BOSSbase_1.01-256-convolved/cover/' + str(file_number) + '.ppm', np.einsum('kij->ijk', np.array([cover_conv_image, cover_conv_image, cover_conv_image])))
+        cv2.imwrite(output_cover_path + str(file_number) + '.ppm', np.einsum('kij->ijk', np.array([cover_conv_image, cover_conv_image, cover_conv_image])))
 
-        stego_image = cv2.imread(stego_path + str(folder_number) + '/' + str(file_number) + '.pgm', cv2.IMREAD_GRAYSCALE)
+        stego_image = cv2.imread(input_stego_path + str(folder_number) + '/' + str(file_number) + '.pgm', cv2.IMREAD_GRAYSCALE)
         stego_conv_image = convolve(stego_image, kernel)
-        cv2.imwrite('BOSSbase_1.01-256-convolved/stego_wow_0.4/' + str(file_number) + '.ppm', np.einsum('kij->ijk', np.array([stego_conv_image, stego_conv_image, stego_conv_image])))
+        cv2.imwrite(output_stego_path + str(file_number) + '.ppm', np.einsum('kij->ijk', np.array([stego_conv_image, stego_conv_image, stego_conv_image])))
 
         print(str(file_number) + '.ppm/' + str(folders_amount * 1000))
