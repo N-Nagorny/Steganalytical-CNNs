@@ -3,16 +3,24 @@
 set -e
 
 SIZE=512
+IM_THOUSANDS_NUMBER=10
+PAYLOAD=0.4
 
 for PARAM in "$@"
 do
   case $PARAM in
-    --size=?*)
+    --side-size=?*)
       SIZE=${PARAM#*=} # Delete everything up to "=" and assign the remainder.
       ;;
     --download)
       wget http://dde.binghamton.edu/download/ImageDB/BOSSbase_1.01.zip
       wget http://dde.binghamton.edu/download/stego_algorithms/download/WOW_linux_make_v10.tar.gz
+      ;;
+    --set-size=?*)
+      IM_THOUSANDS_NUMBER=${PARAM#*=}
+      ;;
+    --payload=?*)
+      PAYLOAD=${PARAM#*=}
       ;;
     *)
       echo "Wrong argument."
@@ -21,15 +29,21 @@ do
   esac
 done
 
+if [ "$(md5sum BOSSbase_1.01.zip | awk '{print $1}')" != "58fe0159a8a825adfc0d008fec9b9287"] && [ "$(md5sum WOW_linux_make_v10.tar.gz | awk '{print $1}')" != "d9b440b0b3de59425b4db3d072017247"]; then
+    echo "MD5 sums don't match"
+    exit 1
+fi
+
 unzip BOSSbase_1.01.zip
 mkdir -p BOSSbase_1.01-$SIZE/cover
-mkdir -p BOSSbase_1.01-$SIZE/stego_wow_0.4
+mkdir -p BOSSbase_1.01-$SIZE/stego_wow_$PAYLOAD
 
 if [ $SIZE == 512 ]; then
-    mv BOSSbase_1.01/* BOSSbase_1.01-$SIZE/cover
+    mv BOSSbase_1.01/{1..$((IM_THOUSANDS_NUMBER * 1000))} BOSSbase_1.01-$SIZE/cover
 else
-    for FILE in BOSSbase_1.01/*.pgm;
+    for I in $(seq 1 $((IM_THOUSANDS_NUMBER * 1000)));
     do
+        FILE="BOSSbase_1.01/${I}.pgm"
         convert -verbose $FILE -resize $SIZE'x'$SIZE BOSSbase_1.01-$SIZE/cover/${FILE#*/}
     done
 fi
@@ -37,17 +51,4 @@ fi
 rm -rf BOSSbase_1.01
 tar -xvf WOW_linux_make_v10.tar.gz
 
-for (( I=0; I < 10000; I++ ));
-do
-    DIRNAME=$(( I/1000 ))
-    if [ $(( I%1000 )) == 0 ]; then
-        mkdir -p BOSSbase_1.01-$SIZE/cover/$DIRNAME
-        mkdir -p BOSSbase_1.01-$SIZE/stego_wow_0.4/$DIRNAME
-    fi
-    mv BOSSbase_1.01-$SIZE/cover/$(( I+1 )).pgm BOSSbase_1.01-$SIZE/cover/$DIRNAME/$(( I+1 )).pgm
-done
-
-for I in {0..9}
-do
-    ./WOW_linux_make_v10/executable/WOW -v -I BOSSbase_1.01-$SIZE/cover/$I/ -O BOSSbase_1.01-$SIZE/stego_wow_0.4/$I/ -a 0.4
-done
+./WOW_linux_make_v10/executable/WOW -v -I BOSSbase_1.01-$SIZE/cover/ -O BOSSbase_1.01-$SIZE/stego_wow_$PAYLOAD/ -a $PAYLOAD

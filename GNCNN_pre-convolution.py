@@ -1,13 +1,20 @@
 import numpy as np
 import cv2
+import os
+import glob
+import threading
 from skimage.exposure import rescale_intensity
 
 height, width = 256, 256
-folders_amount = 10
 input_cover_path = 'BOSSbase_1.01-256/cover/'
-input_stego_path = 'BOSSbase_1.01-256/stego_wow_0.4/'
+input_stego_path = 'BOSSbase_1.01-256/stego_wow_1.6/'
 output_cover_path = 'BOSSbase_1.01-256-convolved/cover/'
-output_stego_path = 'BOSSbase_1.01-256-convolved/stego_wow_0.4/'
+output_stego_path = 'BOSSbase_1.01-256-convolved/stego_wow_1.6/'
+
+if not os.path.exists(output_cover_path):
+    os.makedirs(output_cover_path)
+if not os.path.exists(output_stego_path):
+    os.makedirs(output_stego_path)
 
 def convolve(image, kernel):
     i_width, i_height = image.shape[0], image.shape[1]
@@ -38,14 +45,25 @@ kernel = np.array((
     [-1,  2,  -2,  2, -1]), dtype="float")
 kernel = np.divide(kernel, 12)
 
-for folder_number in range(0, folders_amount):
-    for file_number in range(folder_number * 1000 + 1, (folder_number + 1) * 1000 + 1):
-        cover_image = cv2.imread(input_cover_path + str(folder_number) + '/' + str(file_number) + '.pgm', cv2.IMREAD_GRAYSCALE)
-        cover_conv_image = convolve(cover_image, kernel)
-        cv2.imwrite(output_cover_path + str(file_number) + '.ppm', np.einsum('kij->ijk', np.array([cover_conv_image, cover_conv_image, cover_conv_image])))
+def process_batch (input_path, output_path):
+    for filename in glob.glob(os.path.join(input_path, '*.pgm')):
+        orig_image = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+        conv_image = convolve(orig_image, kernel)
+        cv2.imwrite(output_path + os.path.splitext(os.path.basename(filename))[0] + '.ppm', np.einsum('kij->ijk', np.array([conv_image, conv_image, conv_image])))
+        print(filename)
 
-        stego_image = cv2.imread(input_stego_path + str(folder_number) + '/' + str(file_number) + '.pgm', cv2.IMREAD_GRAYSCALE)
-        stego_conv_image = convolve(stego_image, kernel)
-        cv2.imwrite(output_stego_path + str(file_number) + '.ppm', np.einsum('kij->ijk', np.array([stego_conv_image, stego_conv_image, stego_conv_image])))
+class myThread (threading.Thread):
+   def __init__(self, input_path, output_path):
+      threading.Thread.__init__(self)
+      self.input_path = input_path
+      self.output_path = output_path
+   def run(self):
+      process_batch(self.input_path, self.output_path)
 
-        print(str(file_number) + '.ppm/' + str(folders_amount * 1000))
+# Create new threads
+thread1 = myThread(input_cover_path, output_cover_path)
+thread2 = myThread(input_stego_path, output_stego_path)
+
+# Start new Threads
+thread1.start()
+thread2.start()
