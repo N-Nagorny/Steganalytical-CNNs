@@ -35,7 +35,9 @@ int main( int argc, char *argv[])
 int readPGM(char fname[], Image& image)
 {
     int i, j;
-    int N, M, Q;
+    int N = 0;
+    int M = 0;
+    int Q = 0;
     unsigned char *charImage;
     char header [100], *ptr;
     ifstream ifp;
@@ -55,21 +57,26 @@ int readPGM(char fname[], Image& image)
         cout << "Image " << fname << " is not PGM" << endl;
         exit(1);
     }
- 
-    ifp.getline(header,100,'\n');
-    while(header[0]=='#')
+
+    M=strtol(header+2,&ptr,0);
+    N=strtol(ptr, &ptr, 0);
+    Q=strtol(ptr,&ptr,0);
+
+    if (M == 0 & N == 0 & Q == 0) { 
         ifp.getline(header,100,'\n');
+        while(header[0]=='#')
+            ifp.getline(header,100,'\n');
  
-    M=strtol(header,&ptr,0);
-    N=atoi(ptr);
+        M=strtol(header,&ptr,0);
+        N=strtol(ptr, &ptr, 0);
  
-    ifp.getline(header,100,'\n');
-    Q=strtol(header,&ptr,0);
- 
+        ifp.getline(header,100,'\n');
+        Q=strtol(header,&ptr,0);
+    }
     charImage = (unsigned char *) new unsigned char [M*N];
  
     ifp.read( reinterpret_cast<char *>(charImage), (M*N)*sizeof(unsigned char));
- 
+
     if (ifp.fail())
     {
         cout << "Image " << fname << " has wrong size" << endl;
@@ -122,18 +129,23 @@ int readImageHeader(char fname[], int& N, int& M, int& Q, bool& type)
         cout << "Image " << fname << " is not PGM or PPM" << endl;
         exit(1);
     }
- 
-    ifp.getline(header,100,'\n');
-    while(header[0]=='#')
+
+    M=strtol(header+2,&ptr,0);
+    N=strtol(ptr, &ptr, 0);
+    Q=strtol(ptr,&ptr,0);
+
+    if (M == 0 & N == 0 & Q == 0) { 
         ifp.getline(header,100,'\n');
+        while(header[0]=='#')
+            ifp.getline(header,100,'\n');
  
-    M=strtol(header,&ptr,0);
-    N=atoi(ptr);
+        M=strtol(header,&ptr,0);
+        N=strtol(ptr, &ptr, 0);
  
-    ifp.getline(header,100,'\n');
- 
-    Q=strtol(header,&ptr,0);
- 
+        ifp.getline(header,100,'\n');
+        Q=strtol(header,&ptr,0);
+    }
+
     ifp.close();
  
     return(1);
