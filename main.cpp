@@ -154,21 +154,9 @@ int writePPM(char fname[], Image& image)
 {
     int i, j;
     int N, M, Q;
-    unsigned char *charImage;
     ofstream ofp;
  
     image.getImageInfo(N, M, Q);
- 
-    //charImage = (unsigned char *) new unsigned char [M*N];
-    //int val;
-    //for(i=0; i<N; i++)
-    //{
-    //    for(j=0; j<M; j++)
-    //    {
-    //        val = image.getPixelVal(i, j);
-    //        charImage[i*M+j]=(unsigned char)val;
-    //    }
-    //}
  
     ofp.open(fname, ios::out | ios::binary);
     if (!ofp)
@@ -180,7 +168,6 @@ int writePPM(char fname[], Image& image)
     ofp << "P6" << endl;
     ofp << M << " " << N << endl;
     ofp << Q << endl;
-    //for (i = 0; i < 3; i++)
     for(i=0; i<N; i++)
     {
         for(j=0; j<M; j++)
@@ -190,13 +177,11 @@ int writePPM(char fname[], Image& image)
             ofp << (unsigned char)image.getPixelVal(i, j);
         }
     }
-    //ofp.write( reinterpret_cast<char *>(charImage), (M*N)*sizeof(unsigned char));
     if (ofp.fail())
     {
         cout << "Can't write image " << fname << endl;
         exit(0);
     }
     ofp.close();
-    delete [] charImage;
     return(1);
 }

@@ -53,9 +53,29 @@ do
 done
 
 rm -rf BOSSbase_1.01
+
+for (( I=0; I < $((IM_THOUSANDS_NUMBER * 1000)); I++ ));
+do
+    DIRNAME=$(( I/1000 ))
+    if [ $(( I%1000 )) == 0 ]; then
+        mkdir -p BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/cover/$DIRNAME
+        mkdir -p BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/stego/$DIRNAME
+    fi
+    mv BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/cover/$(( I+1 )).pgm BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/cover/$DIRNAME/$(( I+1 )).pgm
+done
+
 tar -xvf WOW_linux_make_v10.tar.gz
 
-./WOW_linux_make_v10/executable/WOW -v -I BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/cover/ -O BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/stego/ -a $PAYLOAD
+for I in {0..9}
+do
+    ./WOW_linux_make_v10/executable/WOW -v -I BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/cover/$I/ -O BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/stego/$I/ -a $PAYLOAD
+done
+
+for TYPE in "cover" "stego";
+do
+    find BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/${TYPE}/ -name "*.pgm" -exec mv {} BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/${TYPE}/ \;
+done
+
 g++ main.cpp Image.cpp
 
 for TYPE in "cover" "stego";
