@@ -74,6 +74,7 @@ done
 for TYPE in "cover" "stego";
 do
     find BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/${TYPE}/ -name "*.pgm" -exec mv {} BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/${TYPE}/ \;
+    rm -r BOSSbase_1.01-${SIZE}_wow_${PAYLOAD}/${TYPE}/{0..9}/
 done
 
 g++ main.cpp Image.cpp
